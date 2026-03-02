@@ -1,0 +1,2 @@
+[console_scripts]
+nebbia = nebbia.__main__:main

@@ -1,0 +1,11 @@
+README.md
+pyproject.toml
+nebbia/__init__.py
+nebbia/__main__.py
+nebbia/core.py
+nebbia.egg-info/PKG-INFO
+nebbia.egg-info/SOURCES.txt
+nebbia.egg-info/dependency_links.txt
+nebbia.egg-info/entry_points.txt
+nebbia.egg-info/requires.txt
+nebbia.egg-info/top_level.txt
