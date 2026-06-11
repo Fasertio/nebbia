@@ -1,8 +1,8 @@
 Metadata-Version: 2.4
 Name: nebbia
-Version: 1.0.0
-Summary: Offusca query LDAP (RFC 4515) tramite trasformazioni strutturali su AST mantenendone la semantica invariata.
-Author: nebbia contributors
+Version: 1.1.0
+Summary: LDAP filter obfuscation tool
+Author: Fasertio
 License: MIT
 Keywords: ldap,obfuscation,ast,security,active-directory
 Classifier: Development Status :: 4 - Beta
@@ -18,60 +18,59 @@ Classifier: Topic :: Software Development :: Libraries :: Python Modules
 Classifier: Topic :: System :: Systems Administration :: Authentication/Directory :: LDAP
 Requires-Python: >=3.10
 Description-Content-Type: text/markdown
+License-File: LICENSE
 Provides-Extra: dev
 Requires-Dist: pytest>=7; extra == "dev"
 Requires-Dist: pytest-cov; extra == "dev"
 Requires-Dist: black; extra == "dev"
 Requires-Dist: ruff; extra == "dev"
 Requires-Dist: mypy; extra == "dev"
+Dynamic: license-file
 
 # nebbia
 
-Libreria Python per l'**offuscamento strutturale di query LDAP** (RFC 4515).  
-Analizza il filtro tramite un **Abstract Syntax Tree**, applica trasformazioni strutturali e lessicali e restituisce una query semanticamente equivalente ma sintatticamente diversa.
+LDAP filter obfuscation tool.  
+Analyze the filter using **Abstract Syntax Tree**, applies structural transformation and return an equivalent query.
+Useful for sneaky query to the Domain Controller or edit tools that queries against the domain (like Certipy).
 
 ---
 
-## Installazione
+## Installation
 
 ```bash
 pip install nebbia
 ```
 
-oppure in modalità sviluppo:
+dev:
 
 ```bash
-git clone https://github.com/example/nebbia
+git clone https://github.com/Fasertio/nebbia
 cd nebbia
 pip install -e ".[dev]"
 ```
 
 ---
 
-## Uso come libreria
+## Library usage
 
 ```python
 from nebbia import obfuscate, parse, serialize
 
-# ── offuscamento base ──────────────────────────────────────────────────
 query  = "(&(objectClass=person)(uid=jdoe)(!(locked=true)))"
 result = obfuscate(query)
 print(result)
 # es: (&((!(!(\75Id=\6A\64\6F\65))))(oBjEcTcLaSs=\70\65\72son)(!(loCkeD=true)))
 
-# ── output deterministico ──────────────────────────────────────────────
 r1 = obfuscate(query, seed=42)
 r2 = obfuscate(query, seed=42)
 assert r1 == r2
 
-# ── accesso diretto all'AST ────────────────────────────────────────────
 from nebbia import parse, serialize, NodeType
 
 ast = parse("(sAMAccountName=krbtgt)")
 print(ast)
 # ASTNode(FILTER, 'sAMAccountName'='krbtgt')
 
-# modifica manuale del nodo
 ast.value = "administrator"
 print(serialize(ast))
 # (sAMAccountName=administrator)
@@ -79,71 +78,31 @@ print(serialize(ast))
 
 ---
 
-## Uso da riga di comando
+## CLI
 
 ```bash
-# query singola
+
+#single query
 nebbia "(uid=jdoe)"
 
-# più varianti
+#multiple
 nebbia "(&(uid=admin)(objectClass=person))" --count 3
 
-# output deterministico
+#deterministic output
 nebbia "(cn=krbtgt)" --seed 42
 
-# disabilita colori ANSI (es. in pipe)
+#disable ANSI color
 nebbia "(uid=test)" --no-color
 
-# demo con query predefinite
-nebbia --demo
-
-# lettura da stdin
+#stdin
 echo "(uid=admin)" | nebbia
 
-# via modulo Python diretto
+#python module
 python -m nebbia "(uid=jdoe)" --count 2
 ```
 
 ---
 
-## Trasformazioni applicate
-
-| Tipo | Trasformazione | Semantica |
-|------|---------------|-----------|
-| Strutturale | Shuffle figli `AND`/`OR` | ✅ commutatività |
-| Strutturale | Doppia negazione `¬¬X ≡ X` | ✅ invariata |
-| Lessicale | Mixed-case attributi | ✅ LDAP è case-insensitive |
-| Lessicale | Escape `\HH` sui valori | ✅ RFC 4515 §2.4 |
-
----
-
-## API di riferimento
-
-```python
-nebbia.obfuscate(query: str, seed: int | None = None) -> str
-```
-Offusca una query LDAP. Lancia `LDAPParseError` se la query non è valida.
-
-```python
-nebbia.parse(query: str) -> ASTNode
-```
-Parsa la query e restituisce l'AST grezzo senza trasformazioni.
-
-```python
-nebbia.serialize(node: ASTNode) -> str
-```
-Serializza un AST nella sua rappresentazione stringa LDAP.
-
----
-
-## Test
-
-```bash
-pytest tests/ -v --cov=nebbia
-```
-
----
-
-## Licenza
+## License
 
 MIT
