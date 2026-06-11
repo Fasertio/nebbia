@@ -1,6 +1,6 @@
 """
-Test suite per nebbia.
-Esegui con:  pytest tests/ -v
+Test suite
+pytest tests/ -v
 """
 
 import pytest
